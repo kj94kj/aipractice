@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: aipractice
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+ 
+    retry:
+      max-attempts: 3
+      backoff:
+          initial-interval: 1s
+          multiplier: 2
+          max-interval: 5s
+    tools:
+      throw-exception-on-error: true
+         
+server:
+  port: 8080
