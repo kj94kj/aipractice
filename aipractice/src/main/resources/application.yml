@@ -1,21 +1,45 @@
 spring:
   application:
     name: aipractice
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ragdb
+    username: postgres
+    password: postgres
+
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
+
       chat:
         options:
           model: gpt-4o-mini
- 
+
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        table-name: vector_store
+
     retry:
       max-attempts: 3
       backoff:
-          initial-interval: 1s
-          multiplier: 2
-          max-interval: 5s
+        initial-interval: 1s
+        multiplier: 2
+        max-interval: 5s
+
     tools:
       throw-exception-on-error: true
-         
+
 server:
   port: 8080
