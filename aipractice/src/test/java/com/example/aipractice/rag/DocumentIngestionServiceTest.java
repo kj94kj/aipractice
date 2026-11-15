@@ -15,7 +15,7 @@ class DocumentIngestionServiceTest {
 
     private final VectorStore vectorStore = mock(VectorStore.class);
     private final DocumentIngestionService service =
-            new DocumentIngestionService(vectorStore);
+            new DocumentIngestionService(vectorStore, new CharacterChunker());
 
     @Test
     void 텍스트파일을_Chunk로_나누어_저장한다() {

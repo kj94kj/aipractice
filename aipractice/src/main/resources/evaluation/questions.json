@@ -1,0 +1,43 @@
+{
+  "questions": [
+    {
+      "id": "leave-carryover",
+      "question": "남은 연차는 며칠까지 다음 해로 넘길 수 있나요?",
+      "relevantSources": ["company.txt"]
+    },
+    {
+      "id": "leave-deadline",
+      "question": "이월한 연차의 사용 기한은 언제인가요?",
+      "relevantSources": ["company.txt"]
+    },
+    {
+      "id": "remote-days",
+      "question": "일주일에 재택근무를 최대 몇 번 할 수 있나요?",
+      "relevantSources": ["remote-work.txt"]
+    },
+    {
+      "id": "remote-approval",
+      "question": "재택근무 신청은 언제까지 누구의 승인을 받아야 하나요?",
+      "relevantSources": ["remote-work.txt"]
+    },
+    {
+      "id": "book-budget",
+      "question": "책 구입 비용은 분기마다 얼마까지 지원되나요?",
+      "relevantSources": ["benefits.txt"]
+    },
+    {
+      "id": "course-budget",
+      "question": "온라인 강의 지원 한도는 연간 얼마인가요?",
+      "relevantSources": ["benefits.txt"]
+    }
+  ],
+  "configurations": [
+    {"name": "vector-k3", "mode": "VECTOR", "topK": 3, "similarityThreshold": 0.0, "profile": "c300-o30"},
+    {"name": "vector-k5", "mode": "VECTOR", "topK": 5, "similarityThreshold": 0.0, "profile": "c300-o30"},
+    {"name": "vector-k10", "mode": "VECTOR", "topK": 10, "similarityThreshold": 0.0, "profile": "c300-o30"},
+    {"name": "vector-threshold-0.65", "mode": "VECTOR", "topK": 5, "similarityThreshold": 0.65, "profile": "c300-o30"},
+    {"name": "keyword-k5", "mode": "KEYWORD", "topK": 5, "similarityThreshold": 0.0, "profile": "c300-o30"},
+    {"name": "hybrid-k5", "mode": "HYBRID", "topK": 5, "similarityThreshold": 0.5, "profile": "c300-o30"},
+    {"name": "chunk-c700-o100", "mode": "HYBRID", "topK": 5, "similarityThreshold": 0.5, "profile": "c700-o100"}
+  ]
+}

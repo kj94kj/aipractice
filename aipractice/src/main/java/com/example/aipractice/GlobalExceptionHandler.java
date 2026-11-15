@@ -1,17 +1,30 @@
 package com.example.aipractice;
 
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.springframework.ai.retry.TransientAiException;
 import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler({
+            TimeoutException.class,
+            ResourceAccessException.class,
+            AiRequestTimeoutException.class
+    })
+    public ResponseEntity<Map<String, String>> handleTimeout(Exception e) {
+        return ResponseEntity
+                .status(HttpStatus.GATEWAY_TIMEOUT)
+                .body(Map.of("error", "AI 서비스 응답 시간이 초과되었습니다."));
+    }
 
     @ExceptionHandler(TransientAiException.class)
     public ResponseEntity<Map<String, String>> handleTransient(
