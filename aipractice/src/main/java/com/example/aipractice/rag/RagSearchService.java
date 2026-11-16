@@ -22,13 +22,24 @@ public class RagSearchService {
 
     private final VectorStore vectorStore;
     private final KeywordSearchRepository keywordRepository;
+    private final RagMetrics metrics;
 
-    public RagSearchService(VectorStore vectorStore, KeywordSearchRepository keywordRepository) {
+    public RagSearchService(
+            VectorStore vectorStore,
+            KeywordSearchRepository keywordRepository,
+            RagMetrics metrics) {
         this.vectorStore = vectorStore;
         this.keywordRepository = keywordRepository;
+        this.metrics = metrics;
     }
 
     public List<SearchHit> search(SearchQuery query) {
+        List<SearchHit> hits = metrics.search(query.mode(), () -> doSearch(query));
+        metrics.searchResults(query.mode(), hits.size());
+        return hits;
+    }
+
+    private List<SearchHit> doSearch(SearchQuery query) {
         return switch (query.mode()) {
             case VECTOR -> vectorSearch(query, query.topK());
             case KEYWORD -> keywordRepository.search(query, query.topK());
@@ -92,6 +103,7 @@ public class RagSearchService {
         FilterExpressionBuilder builder = new FilterExpressionBuilder();
         List<Op> filters = new ArrayList<>();
 
+        filters.add(builder.eq("active", true));
         addFilter(filters, builder, "title", query.title());
         addFilter(filters, builder, "category", query.category());
         addFilter(filters, builder, "profile", query.profile());

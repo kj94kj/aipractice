@@ -66,10 +66,12 @@ public class GroundedAnswerGenerator {
             """);
 
     private final ChatClient chatClient;
+    private final RagMetrics metrics;
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(45);
 
-    public GroundedAnswerGenerator(ChatClient.Builder builder) {
+    public GroundedAnswerGenerator(ChatClient.Builder builder, RagMetrics metrics) {
         this.chatClient = builder.build();
+        this.metrics = metrics;
     }
 
     public String generate(
@@ -86,24 +88,29 @@ public class GroundedAnswerGenerator {
             List<SearchHit> hits,
             PromptProfile promptProfile) {
 
-        String answer;
+        var sample = metrics.startLlm();
         try {
-            answer = Mono.fromCallable(() -> chatClient
+            String answer = Mono.fromCallable(() -> chatClient
                             .prompt(createPrompt(history, question, hits, promptProfile))
                             .call()
                             .content())
                     .subscribeOn(Schedulers.boundedElastic())
                     .timeout(REQUEST_TIMEOUT)
                     .block();
+            validate(answer);
+            metrics.stopLlm(sample, "success", null);
+            return answer;
         }
         catch (RuntimeException e) {
             if (hasTimeoutCause(e)) {
-                throw new AiRequestTimeoutException("AI 응답 시간이 초과되었습니다.", e);
+                AiRequestTimeoutException timeout = new AiRequestTimeoutException(
+                        "AI 응답 시간이 초과되었습니다.", e);
+                metrics.stopLlm(sample, "failure", timeout);
+                throw timeout;
             }
+            metrics.stopLlm(sample, "failure", e);
             throw e;
         }
-        validate(answer);
-        return answer;
     }
 
     public Flux<String> stream(

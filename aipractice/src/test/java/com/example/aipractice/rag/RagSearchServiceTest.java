@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
@@ -19,7 +20,15 @@ class RagSearchServiceTest {
 
     private final VectorStore vectorStore = mock(VectorStore.class);
     private final KeywordSearchRepository keywordRepository = mock(KeywordSearchRepository.class);
-    private final RagSearchService service = new RagSearchService(vectorStore, keywordRepository);
+    private final RagMetrics metrics = mock(RagMetrics.class);
+    private final RagSearchService service = new RagSearchService(
+            vectorStore, keywordRepository, metrics
+    );
+
+    RagSearchServiceTest() {
+        when(metrics.search(any(SearchMode.class), any()))
+                .thenAnswer(invocation -> ((Supplier<?>) invocation.getArgument(1)).get());
+    }
 
     @Test
     void hybrid는_양쪽_검색에_등장한_문서를_먼저_반환한다() {

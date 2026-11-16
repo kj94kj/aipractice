@@ -43,6 +43,7 @@ public class KeywordSearchRepository {
                     WHERE length(token) >= 2
                 ) scores
                 WHERE scores.keyword_score > 0
+                  AND metadata->>'active' = 'true'
                 """);
 
         List<Object> parameters = new ArrayList<>();

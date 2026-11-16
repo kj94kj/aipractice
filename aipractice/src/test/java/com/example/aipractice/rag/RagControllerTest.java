@@ -1,12 +1,16 @@
 package com.example.aipractice.rag;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,5 +81,24 @@ class RagControllerTest {
                         .value("company-policy.txt"))
                 .andExpect(jsonPath("$.sources[0].score")
                         .value(0.91));
+    }
+
+    @Test
+    void 문서_목록을_조회한다() throws Exception {
+        when(ingestionService.list()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/rag/documents"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void 문서를_삭제하면_204를_반환한다() throws Exception {
+        UUID documentId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/rag/documents/{documentId}", documentId))
+                .andExpect(status().isNoContent());
+
+        verify(ingestionService).delete(documentId);
     }
 }

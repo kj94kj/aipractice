@@ -6,6 +6,8 @@ import java.util.concurrent.TimeoutException;
 import org.springframework.ai.retry.TransientAiException;
 import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.ai.retry.NonTransientAiException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
@@ -42,6 +44,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_GATEWAY)
                 .body(Map.of("error", "AI 서비스 호출 실패"));
+    }
+
+    @ExceptionHandler({
+            CannotGetJdbcConnectionException.class,
+            DataAccessResourceFailureException.class
+    })
+    public ResponseEntity<Map<String, String>> handleDatabaseUnavailable(
+            RuntimeException e) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "문서 저장소를 일시적으로 이용할 수 없습니다."));
     }
     
     @ExceptionHandler(InvalidAiResponseException.class)

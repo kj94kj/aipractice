@@ -8,6 +8,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -42,6 +43,9 @@ public class RagService {
                         .query(question)
                         .topK(topK)
                         .similarityThreshold(0.5)
+                        .filterExpression(new FilterExpressionBuilder()
+                                .eq("active", true)
+                                .build())
                         .build()
         );
 

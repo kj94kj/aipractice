@@ -12,7 +12,9 @@ import com.example.aipractice.InvalidAiResponseException;
 class GroundedAnswerGeneratorValidationTest {
 
     private final GroundedAnswerGenerator generator =
-            new GroundedAnswerGenerator(mock(ChatClient.Builder.class));
+            new GroundedAnswerGenerator(
+                    mock(ChatClient.Builder.class), mock(RagMetrics.class)
+            );
 
     @Test
     void 인용이_있는_답변은_허용한다() {
