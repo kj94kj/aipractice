@@ -28,7 +28,14 @@ public class GroundedAnswerGenerator {
     public static final String ABSTENTION = "근거 부족: 제공된 문서에서 답을 찾을 수 없습니다.";
 
     private static final Pattern CITATION = Pattern.compile("\\[문서 \\d+]");
-    private static final String SYSTEM_PROMPT = """
+    private static final String BASELINE_SYSTEM_PROMPT = """
+            당신은 문서 기반 한국어 질의응답 도우미입니다.
+            CONTEXT를 우선 사용해 질문에 간결하게 답하고 답 끝에 [문서 N] 출처를 붙이세요.
+            문서에 답이 없으면 정확히 다음 문장으로 답하세요.
+            "근거 부족: 제공된 문서에서 답을 찾을 수 없습니다."
+            """;
+
+    private static final String STRICT_SYSTEM_PROMPT = """
             당신은 검색 문서만 근거로 답하는 한국어 질의응답 시스템입니다.
 
             규칙:
@@ -70,10 +77,19 @@ public class GroundedAnswerGenerator {
             String question,
             List<SearchHit> hits) {
 
+        return generate(history, question, hits, PromptProfile.STRICT_CITATION);
+    }
+
+    public String generate(
+            List<Message> history,
+            String question,
+            List<SearchHit> hits,
+            PromptProfile promptProfile) {
+
         String answer;
         try {
             answer = Mono.fromCallable(() -> chatClient
-                            .prompt(createPrompt(history, question, hits))
+                            .prompt(createPrompt(history, question, hits, promptProfile))
                             .call()
                             .content())
                     .subscribeOn(Schedulers.boundedElastic())
@@ -95,7 +111,8 @@ public class GroundedAnswerGenerator {
             String question,
             List<SearchHit> hits) {
 
-        return chatClient.prompt(createPrompt(history, question, hits))
+        return chatClient.prompt(createPrompt(
+                        history, question, hits, PromptProfile.STRICT_CITATION))
                 .stream()
                 .content();
     }
@@ -123,10 +140,13 @@ public class GroundedAnswerGenerator {
     private Prompt createPrompt(
             List<Message> history,
             String question,
-            List<SearchHit> hits) {
+            List<SearchHit> hits,
+            PromptProfile promptProfile) {
 
         List<Message> messages = new ArrayList<>();
-        messages.add(new SystemMessage(SYSTEM_PROMPT));
+        messages.add(new SystemMessage(promptProfile == PromptProfile.BASELINE
+                ? BASELINE_SYSTEM_PROMPT
+                : STRICT_SYSTEM_PROMPT));
         messages.addAll(history);
         messages.add(new UserMessage(USER_TEMPLATE.render(Map.of(
                 "question", question,

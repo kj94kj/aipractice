@@ -20,24 +20,34 @@ class RetrievalEvaluationServiceTest {
         RagSearchService searchService = mock(RagSearchService.class);
         when(searchService.search(any(SearchQuery.class))).thenReturn(List.of(
                 hit("wrong.txt"),
-                hit("right.txt")
+                hit("wrong-2.txt"),
+                hit("wrong-3.txt"),
+                hit("right.txt"),
+                hit("wrong-4.txt")
         ));
-        RetrievalEvaluationService service = new RetrievalEvaluationService(searchService);
+        RetrievalEvaluationService service = new RetrievalEvaluationService(
+                searchService,
+                mock(GroundedAnswerGenerator.class),
+                new AnswerQualityEvaluator()
+        );
 
         var report = service.evaluate(new EvaluationRequest(
                 List.of(new EvaluationQuestion(
-                        "q1", "질문", List.of("right.txt"), null, null
+                        "q1", "질문", List.of("right.txt"), "정답",
+                        List.of("정답"), true, null, null
                 )),
                 List.of(new EvaluationConfiguration(
-                        "baseline", SearchMode.VECTOR, 3, 0.0, null, null, null
-                ))
+                        "baseline", SearchMode.VECTOR, 3, 0.0,
+                        null, null, null, PromptProfile.BASELINE
+                )),
+                false
         ));
 
         var result = report.comparison().get(0);
-        assertEquals(1.0, result.recallAtK());
-        assertEquals(1.0, result.hitRateAtK());
-        assertEquals(0.5, result.mrr());
-        assertEquals(2, result.questions().get(0).firstRelevantRank());
+        assertEquals(0.0, result.recallAt3());
+        assertEquals(1.0, result.recallAt5());
+        assertEquals(0.25, result.mrr());
+        assertEquals(4, result.questions().get(0).firstRelevantRank());
     }
 
     private SearchHit hit(String source) {

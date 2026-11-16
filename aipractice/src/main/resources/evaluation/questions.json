@@ -1,43 +1,49 @@
 {
+  "evaluateAnswers": true,
   "questions": [
-    {
-      "id": "leave-carryover",
-      "question": "남은 연차는 며칠까지 다음 해로 넘길 수 있나요?",
-      "relevantSources": ["company.txt"]
-    },
-    {
-      "id": "leave-deadline",
-      "question": "이월한 연차의 사용 기한은 언제인가요?",
-      "relevantSources": ["company.txt"]
-    },
-    {
-      "id": "remote-days",
-      "question": "일주일에 재택근무를 최대 몇 번 할 수 있나요?",
-      "relevantSources": ["remote-work.txt"]
-    },
-    {
-      "id": "remote-approval",
-      "question": "재택근무 신청은 언제까지 누구의 승인을 받아야 하나요?",
-      "relevantSources": ["remote-work.txt"]
-    },
-    {
-      "id": "book-budget",
-      "question": "책 구입 비용은 분기마다 얼마까지 지원되나요?",
-      "relevantSources": ["benefits.txt"]
-    },
-    {
-      "id": "course-budget",
-      "question": "온라인 강의 지원 한도는 연간 얼마인가요?",
-      "relevantSources": ["benefits.txt"]
-    }
+    {"id":"leave-carryover","question":"남은 연차는 며칠까지 다음 해로 넘길 수 있나요?","relevantSources":["company.txt"],"expectedAnswer":"최대 5일까지 이월할 수 있다.","answerKeyPhrases":["최대 5일","이월"],"answerable":true},
+    {"id":"leave-deadline","question":"이월한 연차는 언제까지 써야 하나요?","relevantSources":["company.txt"],"expectedAnswer":"다음 해 12월 31일까지 사용할 수 있다.","answerKeyPhrases":["다음 해","12월 31일"],"answerable":true},
+    {"id":"leave-request","question":"하루 연차는 원칙적으로 언제 신청해야 하나요?","relevantSources":["company.txt"],"expectedAnswer":"근무일 기준 3일 전에 신청한다.","answerKeyPhrases":["근무일 기준","3일 전"],"answerable":true},
+    {"id":"half-day-request","question":"반일 연차는 당일 몇 시까지 신청할 수 있나요?","relevantSources":["company.txt"],"expectedAnswer":"당일 오전 10시 전까지 신청할 수 있다.","answerKeyPhrases":["당일","오전 10시 전"],"answerable":true},
+    {"id":"emergency-leave","question":"긴급 상황으로 미리 연차 신청을 못했으면 어떻게 기록하나요?","relevantSources":["company.txt"],"expectedAnswer":"팀장에게 먼저 알리고 복귀한 날 시스템 기록을 보완한다.","answerKeyPhrases":["팀장에게 먼저","복귀한 날","기록을 보완"],"answerable":true},
+    {"id":"carryover-calculation","question":"연차 이월 일수는 어느 시점의 잔여 일수로 계산하나요?","relevantSources":["company.txt"],"expectedAnswer":"매년 마지막 근무일의 잔여 일수를 기준으로 자동 계산한다.","answerKeyPhrases":["마지막 근무일","자동 계산"],"answerable":true},
+    {"id":"carryover-form","question":"연차 이월 신청서를 따로 내야 하나요?","relevantSources":["company.txt"],"expectedAnswer":"별도의 이월 신청서를 제출할 필요가 없다.","answerKeyPhrases":["신청서","필요는 없다"],"answerable":true},
+    {"id":"leave-deduction-order","question":"새 연차와 이월 연차 중 무엇이 먼저 차감되나요?","relevantSources":["company.txt"],"expectedAnswer":"이월분이 먼저 차감된다.","answerKeyPhrases":["이월분","먼저 차감"],"answerable":true},
+    {"id":"long-leave","question":"연속 5영업일 이상 휴가는 얼마나 미리 협의해야 하나요?","relevantSources":["company.txt"],"expectedAnswer":"최소 2주 전에 팀장과 협의한다.","answerKeyPhrases":["최소 2주 전","팀장"],"answerable":true},
+    {"id":"leave-correction","question":"잔여 연차 계산이 근무 기록과 다르면 어디에 요청하나요?","relevantSources":["company.txt"],"expectedAnswer":"인사팀에 정정을 요청한다.","answerKeyPhrases":["인사팀","정정"],"answerable":true},
+
+    {"id":"remote-days","question":"일주일에 재택근무를 최대 몇 번 할 수 있나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"주 최대 2일까지 신청할 수 있다.","answerKeyPhrases":["주 최대 2일"],"answerable":true},
+    {"id":"remote-carryover","question":"안 쓴 재택근무 일수를 다음 주로 넘길 수 있나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"다음 주나 다음 달로 이월할 수 없다.","answerKeyPhrases":["이월할 수 없다"],"answerable":true},
+    {"id":"remote-approval","question":"재택근무는 언제까지 누구의 승인을 받아야 하나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"근무일 기준 최소 2일 전에 등록하고 팀장 승인을 받는다.","answerKeyPhrases":["최소 2일 전","팀장","승인"],"answerable":true},
+    {"id":"remote-form","question":"재택근무 신청서에는 무엇을 적어야 하나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"근무 장소, 주요 업무, 연락 가능한 전화번호를 적는다.","answerKeyPhrases":["근무 장소","주요 업무","전화번호"],"answerable":true},
+    {"id":"remote-emergency","question":"교통 중단 같은 긴급 사유면 재택근무를 당일 신청할 수 있나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"당일 신청할 수 있지만 팀장에게 먼저 알리고 사유를 기록한다.","answerKeyPhrases":["당일 신청","팀장에게 먼저","사유를 기록"],"answerable":true},
+    {"id":"remote-hours","question":"재택근무 중 근무시간과 휴게시간은 달라지나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"사무실 근무와 같다.","answerKeyPhrases":["사무실 근무와 같다"],"answerable":true},
+    {"id":"remote-camera","question":"재택근무자에게 계속 카메라를 켜라고 요구해도 되나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"불필요한 상시 카메라 연결을 요구하지 않는다.","answerKeyPhrases":["상시 카메라","요구하지 않는다"],"answerable":true},
+    {"id":"remote-storage","question":"고객 개인정보를 개인 클라우드에 저장해도 되나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"개인 기기나 개인 클라우드에 저장하면 안 된다.","answerKeyPhrases":["개인 클라우드","저장해서는 안"],"answerable":true},
+    {"id":"remote-wifi","question":"공용 와이파이로 일할 때 반드시 해야 할 보안 조치는 무엇인가요?","relevantSources":["remote-work.txt"],"expectedAnswer":"회사 VPN을 연결한다.","answerKeyPhrases":["회사 VPN","연결"],"answerable":true},
+    {"id":"remote-loss","question":"회사 기기를 잃어버리면 언제 누구에게 신고해야 하나요?","relevantSources":["remote-work.txt"],"expectedAnswer":"발견 즉시 보안 담당자에게 신고한다.","answerKeyPhrases":["발견 즉시","보안 담당자","신고"],"answerable":true},
+
+    {"id":"book-budget","question":"도서 구입비는 분기마다 얼마까지 지원되나요?","relevantSources":["benefits.txt"],"expectedAnswer":"분기별 최대 5만원까지 지원한다.","answerKeyPhrases":["분기별","최대 5만원"],"answerable":true},
+    {"id":"book-types","question":"전자책도 도서비 지원 대상인가요?","relevantSources":["benefits.txt"],"expectedAnswer":"종이책과 전자책 모두 신청할 수 있다.","answerKeyPhrases":["전자책","신청할 수"],"answerable":true},
+    {"id":"book-exclusions","question":"상품권이나 문구류도 도서비로 지원되나요?","relevantSources":["benefits.txt"],"expectedAnswer":"상품권과 문구류는 지원 대상이 아니다.","answerKeyPhrases":["상품권","문구류","지원 대상이 아니다"],"answerable":true},
+    {"id":"book-carryover","question":"이번 분기에 남은 도서비를 다음 분기로 이월할 수 있나요?","relevantSources":["benefits.txt"],"expectedAnswer":"다음 분기로 이월되지 않는다.","answerKeyPhrases":["다음 분기","이월되지 않는다"],"answerable":true},
+    {"id":"book-receipt","question":"도서비 영수증에는 어떤 정보가 보여야 하나요?","relevantSources":["benefits.txt"],"expectedAnswer":"구매일, 도서명, 결제 금액이 보여야 한다.","answerKeyPhrases":["구매일","도서명","결제 금액"],"answerable":true},
+    {"id":"book-preapproval","question":"책을 사기 전에 팀장 승인이 필요한가요?","relevantSources":["benefits.txt"],"expectedAnswer":"팀장의 사전 승인은 필요하지 않다.","answerKeyPhrases":["팀장","사전 승인","필요하지 않"],"answerable":true},
+    {"id":"course-budget","question":"온라인 강의 지원 한도는 연간 얼마인가요?","relevantSources":["benefits.txt"],"expectedAnswer":"연간 최대 30만원까지 지원한다.","answerKeyPhrases":["연간","최대 30만원"],"answerable":true},
+    {"id":"course-approval","question":"온라인 강의비를 지원받으려면 사전 승인이 필요한가요?","relevantSources":["benefits.txt"],"expectedAnswer":"팀장의 사전 승인을 받아야 한다.","answerKeyPhrases":["팀장","사전 승인"],"answerable":true},
+    {"id":"course-reset","question":"강의비 연간 한도는 언제 새로 시작하고 남은 돈은 이월되나요?","relevantSources":["benefits.txt"],"expectedAnswer":"매년 1월 1일 새로 시작하고 다음 해로 이월되지 않는다.","answerKeyPhrases":["1월 1일","이월되지 않는다"],"answerable":true},
+    {"id":"health-leave","question":"건강검진 휴가는 1년에 며칠 제공되나요?","relevantSources":["benefits.txt"],"expectedAnswer":"연 1회, 1일 제공한다.","answerKeyPhrases":["연 1회","1일"],"answerable":true},
+
+    {"id":"unanswerable-meal","question":"야근 식대는 한 달에 얼마까지 지원되나요?","relevantSources":[],"expectedAnswer":"근거 부족","answerKeyPhrases":[],"answerable":false},
+    {"id":"unanswerable-parking","question":"회사 주차비 지원 기준은 무엇인가요?","relevantSources":[],"expectedAnswer":"근거 부족","answerKeyPhrases":[],"answerable":false},
+    {"id":"unanswerable-parental","question":"육아휴직은 최대 몇 개월 사용할 수 있나요?","relevantSources":[],"expectedAnswer":"근거 부족","answerKeyPhrases":[],"answerable":false},
+    {"id":"unanswerable-equipment","question":"재택근무용 모니터 구매 예산은 얼마인가요?","relevantSources":[],"expectedAnswer":"근거 부족","answerKeyPhrases":[],"answerable":false},
+    {"id":"unanswerable-start-time","question":"회사의 공식 출근 시각은 오전 몇 시인가요?","relevantSources":[],"expectedAnswer":"근거 부족","answerKeyPhrases":[],"answerable":false},
+    {"id":"unanswerable-counselor","question":"심리 상담 프로그램을 운영하는 업체 이름은 무엇인가요?","relevantSources":[],"expectedAnswer":"근거 부족","answerKeyPhrases":[],"answerable":false}
   ],
   "configurations": [
-    {"name": "vector-k3", "mode": "VECTOR", "topK": 3, "similarityThreshold": 0.0, "profile": "c300-o30"},
-    {"name": "vector-k5", "mode": "VECTOR", "topK": 5, "similarityThreshold": 0.0, "profile": "c300-o30"},
-    {"name": "vector-k10", "mode": "VECTOR", "topK": 10, "similarityThreshold": 0.0, "profile": "c300-o30"},
-    {"name": "vector-threshold-0.65", "mode": "VECTOR", "topK": 5, "similarityThreshold": 0.65, "profile": "c300-o30"},
-    {"name": "keyword-k5", "mode": "KEYWORD", "topK": 5, "similarityThreshold": 0.0, "profile": "c300-o30"},
-    {"name": "hybrid-k5", "mode": "HYBRID", "topK": 5, "similarityThreshold": 0.5, "profile": "c300-o30"},
-    {"name": "chunk-c700-o100", "mode": "HYBRID", "topK": 5, "similarityThreshold": 0.5, "profile": "c700-o100"}
+    {"name":"baseline-vector","mode":"VECTOR","topK":5,"similarityThreshold":0.5,"profile":"c300-o30","promptProfile":"BASELINE"},
+    {"name":"search-improved-hybrid","mode":"HYBRID","topK":5,"similarityThreshold":0.5,"profile":"c300-o30","promptProfile":"BASELINE"},
+    {"name":"prompt-improved-strict","mode":"HYBRID","topK":5,"similarityThreshold":0.5,"profile":"c300-o30","promptProfile":"STRICT_CITATION"}
   ]
 }

@@ -1,4 +1,4 @@
-# AI Practice - 검색 평가와 신뢰 가능한 RAG 챗봇
+# AI Practice - RAG 평가 자동화와 신뢰 가능한 챗봇
 
 2주차의 검색 정확도 실험과 3주차의 신뢰성·UX 요구사항을 한 프로젝트에서 재현하는
 학습용 Spring Boot/Spring AI 애플리케이션입니다.
@@ -8,7 +8,10 @@
 - 글자 기준 `chunkSize`와 `overlap`을 바꿔 같은 문서를 여러 profile로 적재
 - Vector, PostgreSQL keyword, Hybrid(RRF) 검색 비교
 - Top-K, similarity threshold, 제목·카테고리·profile metadata 필터
-- 실제 정답 source가 표시된 질문 세트로 Recall@K, HitRate@K, MRR 계산
+- 36개 gold 질문 세트로 Recall@3, Recall@5, MRR 자동 계산
+- 검색 시간, LLM 생성 시간, 오류율, 답변 보류 정확도 기록
+- 인용 기반 Faithfulness proxy와 정답 핵심 문구 기반 Answer Relevancy proxy
+- 검색 변경과 프롬프트 변경을 분리한 baseline/candidate 비교
 - 답변의 `[문서 N]` 인용과 파일·페이지·chunk 글자 위치 반환
 - 근거가 없으면 LLM을 호출하지 않고 답변 보류
 - Few-shot과 `PromptTemplate`을 사용한 문서 전용 프롬프트
@@ -85,35 +88,70 @@ Similarity threshold는 vector 후보에 적용합니다. Keyword에는 cosine s
 없으므로 적용하지 않으며, Hybrid에서는 threshold를 통과한 vector 후보와 keyword
 후보를 합칩니다.
 
-## 3. Recall@K 평가표 만들기
+## 3. 4주차: RAG 자동 평가 실행
 
 애플리케이션을 실행한 상태에서 아래 스크립트 한 번으로 sample 문서를 두 profile로
-적재하고 질문 6개를 평가합니다.
+적재하고 36개 질문을 세 설정에 대해 일괄 평가합니다. 30개는 답변 가능 질문이고,
+6개는 모델이 올바르게 답변을 보류하는지 확인하는 답변 불가 질문입니다.
 
 ```powershell
 .\scripts\run-benchmark.ps1
 ```
 
-실제 결과는 다음 두 파일에 저장됩니다.
+실제 결과는 다음 세 파일에 저장됩니다.
 
-- `build/reports/rag-evaluation.md`: 제출용 비교표
+- `build/reports/rag-evaluation.md`: 제출용 요약과 직전 설정 대비 delta
+- `build/reports/rag-evaluation.csv`: 설정·질문별 상세 결과
 - `build/reports/rag-evaluation.json`: 질문별 검색 source와 최초 정답 순위
+
+LLM 비용 없이 검색 설정만 빠르게 반복하려면 다음처럼 실행합니다.
+
+```powershell
+.\scripts\run-benchmark.ps1 -SkipAnswerEvaluation
+```
 
 평가 데이터와 비교 설정은
 `src/main/resources/evaluation/questions.json`에서 수정합니다. 예를 들어 한 질문의 정답
 문서가 두 개면 `relevantSources`에 두 파일을 모두 넣습니다.
 
+세 기본 실험은 한 번에 여러 변수를 바꾸지 않도록 설계했습니다.
+
+| 설정 | 검색 변경 | 프롬프트 변경 | 비교 목적 |
+|---|---|---|---|
+| `baseline-vector` | Vector | Baseline | 기준 |
+| `search-improved-hybrid` | Hybrid | Baseline | 검색 변경 효과만 격리 |
+| `prompt-improved-strict` | Hybrid | Strict citation | 프롬프트 변경 효과만 격리 |
+
 지표의 의미는 다음과 같습니다.
 
 ```text
-Recall@K = Top-K 안에서 찾은 정답 문서 수 / 전체 정답 문서 수
-HitRate@K = 정답을 하나라도 찾은 질문 수 / 전체 질문 수
-MRR       = 질문별 첫 정답 순위의 역수(1/rank) 평균
+Recall@3  = 상위 3개에서 찾은 정답 문서 수 / 전체 정답 문서 수
+Recall@5  = 상위 5개에서 찾은 정답 문서 수 / 전체 정답 문서 수
+MRR       = 질문별 첫 정답 문서 순위의 역수(1/rank) 평균
+오류율    = 검색 또는 답변 생성 오류가 발생한 질문 수 / 전체 질문 수
 ```
 
-Recall만 같다면 MRR이 높은 설정이 정답을 앞쪽에 올린 것입니다. Top-K를 키우면 Recall은
-대체로 오르지만 LLM context 비용과 잡음도 증가합니다. 따라서 `Recall@5`가 `Recall@10`과
-같고 MRR도 충분히 높다면 Top-K 5가 보통 더 경제적입니다.
+`relevantSources`의 파일명은 이 실습에서 사용하는 논리 문서 ID입니다. chunk UUID는
+profile마다 달라질 수 있으므로 gold label로 쓰지 않습니다. 답변 불가 질문은 정답 문서가
+없기 때문에 Recall 평균에서는 제외하고, 대신 답변 보류 정확도에 반영합니다.
+
+### Faithfulness와 Answer Relevancy
+
+이 프로젝트의 자동 점수는 API 비용이 없고 매번 같은 결과를 내는 **proxy**입니다.
+
+- `Faithfulness proxy`: 답변의 각 문장에 실제 검색 결과 범위 안의 `[문서 N]` 인용이
+  있는 비율입니다. 인용 형식 준수는 측정하지만, 문장이 문서에서 논리적으로 도출되는지까지
+  증명하지는 않습니다.
+- `Answer Relevancy proxy`: 사람이 gold dataset에 적은 `answerKeyPhrases`가 답변에
+  포함된 비율입니다. 핵심 답 누락을 잘 잡지만 동의어·의역에는 약합니다.
+- `Abstention Accuracy`: 답할 수 있는 질문에는 답하고, 답할 수 없는 질문에는
+  `근거 부족`으로 보류했는지 측정합니다.
+
+실무 수준의 의미 평가는 RAGAS/DeepEval 또는 별도 LLM judge에 `question`, `retrieved
+context`, `answer`, `reference answer`를 주고 0~1 점수와 판정 근거를 구조화 출력으로
+받는 방식으로 확장합니다. 이때 **답변을 만든 모델과 다른 judge 모델 사용**, judge prompt
+버전 고정, 사람이 채점한 20~50건과의 상관관계 확인이 필요합니다. LLM judge 결과도
+확률적이므로 이 proxy와 사람 표본 검수를 함께 두는 편이 안전합니다.
 
 > 이 저장소에는 측정값을 미리 적어 두지 않습니다. Embedding 모델, 적재 문서, 질문이
 > 바뀌면 수치도 달라지기 때문입니다. `run-benchmark.ps1`이 현재 환경의 실제 수치와
@@ -181,9 +219,30 @@ curl.exe -X DELETE http://localhost:8080/api/rag/chat/conversations/demo-1
 1. `CharacterChunker`에서 chunk 경계와 overlap이 Recall에 미치는 영향을 확인합니다.
 2. `RagSearchService`에서 metadata filter와 RRF 공식을 확인합니다. 서로 단위가 다른
    cosine/keyword 점수를 직접 더하지 않는 이유가 핵심입니다.
-3. `RetrievalEvaluationService`는 답변 품질이 아니라 **검색 품질**만 측정합니다.
-4. `GroundedAnswerGenerator`는 Few-shot, PromptTemplate, 인용 검증을 담당합니다.
-5. `RagChatService`는 검색 결과 0건 사전 보류, 대화 이력, streaming timeout을 담당합니다.
+3. `RetrievalEvaluationService`에서 검색과 답변 생성의 시간·오류·점수가 서로 분리되는지
+   확인합니다.
+4. `AnswerQualityEvaluator`에서 저렴한 결정적 proxy의 장점과 한계를 확인합니다.
+5. `GroundedAnswerGenerator`의 `BASELINE`과 `STRICT_CITATION`을 비교해 프롬프트 변경의
+   효과를 검색 변경과 분리합니다.
+6. `RagChatService`는 검색 결과 0건 사전 보류, 대화 이력, streaming timeout을 담당합니다.
+
+### 이번 주 학습 순서
+
+1. **Gold dataset 설계**: 실제 사용자 표현, 쉬운 질문/패러프레이즈/답변 불가 질문의
+   비율과 정답 문서 ID 라벨링 방법을 익힙니다.
+2. **검색 지표**: Recall@K, Precision@K, MRR, nDCG의 차이를 익히고 이 실습에서는
+   정답 문서를 놓치지 않는 것이 우선이라 Recall과 MRR을 선택한 이유를 설명합니다.
+3. **생성 지표**: Faithfulness(근거 충실도), Answer Relevancy(질문에 대한 관련성),
+   correctness(정답 일치도)가 서로 다른 축임을 익힙니다.
+4. **실험 설계**: 한 번에 한 변수만 변경하고 같은 dataset·모델·temperature로 반복해
+   baseline 대비 delta를 해석합니다.
+5. **운영 지표**: 평균뿐 아니라 p95 latency, timeout, 오류율, 토큰 비용도 품질과 함께
+   회귀 기준에 넣는 방법을 학습합니다.
+
+제출 보고서에서는 “Hybrid가 Recall@3를 얼마나 바꿨는가”, “Strict prompt가 검색 점수는
+그대로 둔 채 Faithfulness/보류 정확도를 바꿨는가”, “그 대가로 지연시간과 오류율이 얼마나
+변했는가”를 각각 한 문단으로 설명하면 검색 품질과 최종 답변 품질을 구분했다는 것이
+명확해집니다.
 
 PostgreSQL의 `simple` text search는 한국어 형태소 분석기가 아닙니다. 띄어쓰기 단어가
 정확히 겹치는 질의에는 강하지만 표현이 바뀌면 약해집니다. 이 차이를 vector 검색이
