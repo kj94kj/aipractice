@@ -4,6 +4,8 @@ from fastapi import FastAPI
 
 from database import Base, engine
 from routers.todo import router
+from routers.external import router as external_router
+from routers.llm import router as llm_router
 
 
 @asynccontextmanager
@@ -18,3 +20,5 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(router) 
+app.include_router(external_router)
+app.include_router(llm_router)
